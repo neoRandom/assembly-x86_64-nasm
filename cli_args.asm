@@ -3,9 +3,6 @@
 %include "include/outlib.inc"
 
 
-section .bss
-    number_to_string_buffer resb 1024
-
 section .text
     global _start
 
