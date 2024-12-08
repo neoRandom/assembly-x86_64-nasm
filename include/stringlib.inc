@@ -1,5 +1,5 @@
-%ifndef OUTLIB
-%define OUTLIB
+%ifndef STRINGLIB
+%define STRINGLIB
 
 ; DEPENDENCIES: 'mathlib'
 
