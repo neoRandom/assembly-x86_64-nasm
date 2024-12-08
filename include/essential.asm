@@ -1,3 +1,6 @@
+%ifndef ESSENTIAL
+%define ESSENTIAL
+
 ; =========================== EQU VALUES
 STDIN equ 0
 STDOUT equ 1
@@ -21,3 +24,5 @@ SYS_EXIT equ 60
     mov rdx, %2
     syscall
 %endmacro
+
+%endif
