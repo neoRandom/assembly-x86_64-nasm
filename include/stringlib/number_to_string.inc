@@ -26,10 +26,10 @@ _number_to_string:
 
     ; Clear the buffer
     .clear_the_buffer:
-    dec r9                                    ; Decrementing the counter
-    mov byte [number_to_string_buffer+r9], 0  ; Cleaning the cell. Note: r9 starts at 1023, because the buffer is already at cell 1
-    cmp r9, 0
-    jnz .clear_the_buffer
+        dec r9                                    ; Decrementing the counter
+        mov byte [number_to_string_buffer+r9], 0  ; Cleaning the cell. Note: r9 starts at 1023, because the buffer is already at cell 1
+        cmp r9, 0
+        jnz .clear_the_buffer
 
     ; Test for negative numbers
     cmp rax, 0
@@ -53,21 +53,21 @@ _number_to_string:
     .not_zero:
     ; Looping to add each digit of the RAX to the stack
     .add_digit_to_stack:         ; DO WHILE the value of RAX is greater than 0
-    module                       ; RDX = RAX % RCX (10) and RAX /= RCX (10)
-    push rdx                     ; Pushing the remainder (digit) to the stack
-    inc r8                       ; Incrementing the counter
-    cmp rax, 0
-    jnz .add_digit_to_stack
+        module                       ; RDX = RAX % RCX (10) and RAX /= RCX (10)
+        push rdx                     ; Pushing the remainder (digit) to the stack
+        inc r8                       ; Incrementing the counter
+        cmp rax, 0
+        jnz .add_digit_to_stack
 
     ; For each digit stored in the stack, convert into character and add it to the buffer
     .push_digit_to_buffer:
-    pop rax                                     ; Removing the value from the stack and storing at RAX
-    dec r8                                      ; Decrementing the digit counter
-    add rax, 48                                 ; Converting the number to an ASCII character
-    mov byte [number_to_string_buffer+r10], al  ; Storing the character in the buffer
-    inc r10                                     ; Incrementing the string size counter
-    cmp r8, 0
-    jnz .push_digit_to_buffer
+        pop rax                                     ; Removing the value from the stack and storing at RAX
+        dec r8                                      ; Decrementing the digit counter
+        add rax, 48                                 ; Converting the number to an ASCII character
+        mov byte [number_to_string_buffer+r10], al  ; Storing the character in the buffer
+        inc r10                                     ; Incrementing the string size counter
+        cmp r8, 0
+        jnz .push_digit_to_buffer
 
     .skip_if_zero:
     ; Adding a null character to the end of the string
