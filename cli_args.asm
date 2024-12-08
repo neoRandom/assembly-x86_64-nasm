@@ -14,6 +14,6 @@ _start:
     call _number_to_string
     push rax
 
-    print [rsp], 1
+    println [rsp], 1
 
-    exit
+    exit 0
