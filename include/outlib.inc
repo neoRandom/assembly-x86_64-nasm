@@ -1,7 +1,8 @@
 %ifndef OUTLIB
 %define OUTLIB
 
-; DEPENDENCY: 'mathlib.asm'
+; DEPENDENCIES: 'mathlib'
+
 
 ; Registers used: RAX, RCX, RDX, R8, R9, R10
 ; Dependencies: '_module' from 'mathlib'

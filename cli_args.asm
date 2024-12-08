@@ -1,6 +1,6 @@
-%include "include/essential.asm"
-%include "include/mathlib.asm"
-%include "include/outlib.asm"
+%include "include/essential.inc"
+%include "include/mathlib.inc"
+%include "include/outlib.inc"
 
 
 section .bss
