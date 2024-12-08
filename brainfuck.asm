@@ -11,8 +11,9 @@ section .data
     data_size equ 32768
 
 section .bss
-    code resb data_size
-    data resb data_size
+    code resb data_size  ; Instructions array block
+    data resb data_size  ; Data array block
+    user resb data_size  ; Buffer for user input
 
 section .text
     global _start
@@ -24,12 +25,13 @@ _start:
         print input_label, 2   ; Printing the initial label
         input code, data_size  ; Receiving the code as input
 
+        ; Exit conditional
         cmp byte [code], '0'
         jz .exit
         cmp byte [code], 'e'
         jz .exit
 
-        ; Cleaning the data buffer
+        ; Zeroing the instructions array
         mov rax, data_size
         mov rcx, 8
         mov rdx, 0
@@ -39,6 +41,17 @@ _start:
         xor rax, rax        ; Value to fill (0 in this case)
         rep stosq           ; Fill the memory with zero
 
+        ; Zeroing the user input buffer
+        mov rax, data_size
+        mov rcx, 8
+        mov rdx, 0
+        div rcx
+        mov rcx, rax        ; Number of qwords to write (32768 bytes / 8 bytes per qword)
+        mov rdi, user       ; Destination address (start of the array)
+        xor rax, rax        ; Value to fill (0 in this case)
+        rep stosq           ; Fill the memory with zero
+
+        ; 'Variables'
         mov r15, 0  ; Instruction pointer
         mov r14, 0  ; Data pointer
 
@@ -78,14 +91,35 @@ _operator:
 
     .inc_cell:
         inc byte [data+r14]
+        jmp .exit
 
+    .dec_cell:
+        dec byte [data+r14]
+        jmp .exit
+    
+    .inc_ptr:
+        inc r14
+        jmp .exit
+    
+    .dec_ptr:
+        dec r14
+        jmp .exit
+    
+    .start_rep:
+        ; TODO
+        jmp .exit
+    
+    .end_rep:
+        ; TODO
+        jmp .exit
+    
+    .input_cell:
         jmp .exit
 
     .print_cell:
         mov rcx, data
         add rcx, r14
         print rcx, 1
-
         jmp .exit
     
     .exit:
