@@ -145,6 +145,7 @@ _operator:
         jmp .exit
     
     .input_cell:
+        ; TODO
         jmp .exit
 
     .print_cell:
@@ -155,3 +156,56 @@ _operator:
     
     .exit:
         ret
+
+
+; ================================ UNIT TESTS ================================
+; There isn't some sort of automated unit test, because it's already hard in
+; high-level languages, in assembly it's a shit. Also, it needs modularization,
+; something that i didn't implement yet.
+; So here is some manual tests
+
+; Title: Model
+; Code: 
+; ...
+; Expected output: 
+; ...
+
+; Title: Initial Test
+; Code: 
+; ++++++++++++++++++++++++++++++++++++++++++++++++.
+; Expected output: 
+; 0
+
+; Title: Ignore characters other than operators
+; Code: 
+; ++++++++++++++++++++++++ this should not modify the output ++++++++++++++++++++++++ or should it? .
+; Expected output: 
+; 0
+
+; Title: Cell Overflow (upwards)
+; Code: 
+; ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+; ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+; ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+; ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+; ++++++++++++++++++++++++++++++++++++++++++++++++.
+; Expected output: 
+; 0
+
+; Title: Cell Overflow (downwards)
+; Code: 
+; --------------------------------------------------------------------------------------------------------------------------------------.
+; Expected output: 
+; z
+
+; Title: Move data pointer
+; Code: 
+; ++++++++++++++++++++++++++++++++++++++++++++++++ > +++++++++++++++++++++++++++++++++++++++++++++++++ . < .
+; Expected output: 
+; 10
+
+; Title: Data pointer overflow
+; Code: 
+; < ++++++++++++++++++++++++++++++++++++++++++++++++ . > +++++++++++++++++++++++++++++++++++++++++++++++++ .
+; Expected output: 
+; 01
