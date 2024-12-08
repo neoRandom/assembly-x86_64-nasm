@@ -8,12 +8,12 @@
 section .data
     title_label db "Brainfuck Interpreter Shell (Assembly x86_64 Linux/Unix Version) | 'e' or '0' to exit", 10
     input_label db "> ", 0
-    data_size equ 32768
+    max_block_size equ 32768
 
 section .bss
-    code resb data_size  ; Instructions array block
-    data resb data_size  ; Data array block
-    user resb data_size  ; Buffer for user input
+    code resb max_block_size  ; Instructions array block
+    data resb max_block_size  ; Data array block
+    user resb max_block_size  ; Buffer for user input
 
 section .text
     global _start
@@ -23,7 +23,7 @@ _start:
 
     .main_loop:
         print input_label, 2   ; Printing the initial label
-        input code, data_size  ; Receiving the code as input
+        input code, max_block_size  ; Receiving the code as input
 
         ; Exit conditional
         cmp byte [code], '0'
@@ -32,7 +32,7 @@ _start:
         jz .exit
 
         ; Zeroing the instructions array
-        mov rax, data_size
+        mov rax, max_block_size
         mov rcx, 8
         mov rdx, 0
         div rcx
@@ -42,7 +42,7 @@ _start:
         rep stosq           ; Fill the memory with zero
 
         ; Zeroing the user input buffer
-        mov rax, data_size
+        mov rax, max_block_size
         mov rcx, 8
         mov rdx, 0
         div rcx
@@ -70,6 +70,7 @@ _start:
         
         add rsp, 8  ; Shrinking the stack
 
+        ; Printing a new line
         push 10
         print rsp, 1
         pop rax
@@ -98,11 +99,29 @@ _operator:
         jmp .exit
     
     .inc_ptr:
+        ; If the instruction pointer is MAX or greater, the increment should set it to 0
+        cmp r14, max_block_size
+        jge .set_ptr_to_zero
+
+        ; Else, just increase it
         inc r14
+        jmp .exit
+
+        .set_ptr_to_zero:
+        mov r14, 0
         jmp .exit
     
     .dec_ptr:
+        ; If the instruction pointer is 0 or lesser, the decrement should MAX it
+        cmp r14, 0
+        jle .set_ptr_to_max
+
+        ; Else, just decrease it
         dec r14
+        jmp .exit
+
+        .set_ptr_to_max:
+        mov r14, max_block_size
         jmp .exit
     
     .start_rep:
