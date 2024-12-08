@@ -1,6 +1,7 @@
 %include "include/essential.inc"
 %include "include/mathlib.inc"
 %include "include/stringlib.inc"
+%include "include/iolib.inc"
 
 section .text
     global _start

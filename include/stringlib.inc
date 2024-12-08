@@ -3,37 +3,29 @@
 
 ; DEPENDENCIES: 'mathlib'
 
-%macro print 2
-    mov rax, SYS_WRITE
-    mov rdi, STDOUT
-    mov rsi, %1
-    mov rdx, %2
-    syscall
-%endmacro
-
-%macro println 2
-    mov rax, SYS_WRITE
-    mov rdi, STDOUT
-    mov rsi, %1
-    mov rdx, %2
-    syscall
-
-    push 10
-
-    mov rax, SYS_WRITE
-    mov rdi, STDOUT
-    mov rsi, rsp
-    mov rdx, 1
-    syscall
-
-    pop rax
-    xor rax, rax
-%endmacro
 
 section .bss
     number_to_string_buffer resb 1024
 
 section .text
+    ; Registers used: RAX
+    ; input: RAX as a pointer to a null-terminated string
+    ; output: RAX as the length of the string
+    _string_len:
+        ; rax = address of the string
+        ; rsp[0] = counter
+        push 0
+
+        .increment_counter:
+        inc qword [rsp]         ; Increment the counter
+        inc rax                 ; Increment the string pointer (move to the end)
+        cmp byte [rax], 0       ; Compare the value of the character with 0
+        jnz .increment_counter  ; If the value is not 0, jump to the loop label
+        
+        pop rax
+
+        ret
+
     ; Registers used: RAX, RCX, RDX, R8, R9, R10
     ; Dependencies: '_module' from 'mathlib', number_to_string_buffer (1024, bss)
     ; input: RAX as the number to be converted
