@@ -1,5 +1,3 @@
-; ++++++++++++++++++++++++++++++++++++++++++++++++.
-
 %include "include/essential.inc"
 %include "include/iolib/println.inc"
 %include "include/iolib/print.inc"
@@ -84,11 +82,25 @@ _start:
 ; +8 - Operator value
 _operator:
     ; Jump Table
-    cmp byte [rsp+8], 43
+    mov bl, byte [rsp+8]
+    cmp bl, '+'    ; Case: '+' (increase cell value)
     je .inc_cell
-    cmp byte [rsp+8], 46
+    cmp bl, '-'    ; Case: '-' (decrease cell value)
+    je .dec_cell
+    cmp bl, '>'    ; Case: '>' (move pointer to right)
+    je .inc_ptr
+    cmp bl, '<'    ; Case: '<' (move pointer to left)
+    je .dec_ptr
+    cmp bl, '['    ; Case: '[' (start loop)
+    je .start_rep
+    cmp bl, ']'    ; Case: ']' (end loop)
+    je .end_rep
+    cmp bl, ','    ; Case: ',' (get input)
+    je .input_cell
+    cmp bl, '.'    ; Case: '.' (print cell value as ASCII)
     je .print_cell
-    jmp .exit
+    
+    jmp .exit       ; Default
 
     .inc_cell:
         inc byte [data+r14]
