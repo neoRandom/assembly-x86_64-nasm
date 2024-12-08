@@ -1,7 +1,9 @@
 %ifndef ESSENTIAL
 %define ESSENTIAL
 
-; =========================== EQU VALUES
+
+; =========================== CONSTANTS
+
 STDIN_FILENO    equ 0
 STDOUT_FILENO   equ 1
 STDERR_FILENO   equ 2
@@ -363,11 +365,23 @@ COPY_FILE_RANGE equ 326
 PREADV2 equ 327
 PWRITEV2    equ 328
 
+
 ; =========================== MACROS
+
+
+; =========================
+; Wrapper for the SYS_EXIT
+;
+; PARAMETERS:
+; 1 - Exit code
+;
 %macro exit 1
     mov rax, SYS_EXIT
     mov rdi, %1
     syscall
 %endmacro
+;
+; =========================
+
 
 %endif

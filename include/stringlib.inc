@@ -8,9 +8,13 @@ section .bss
     number_to_string_buffer resb 1024
 
 section .text
-    ; Registers used: RAX
-    ; input: RAX as a pointer to a null-terminated string
-    ; output: RAX as the length of the string
+    ; =====================================================================
+    ; Counts the number of characters (bytes) on a null-terminated string
+    ;
+    ; TODO: Verify if the address is NULL and if the value pointed is NULL
+    ; INPUT: RAX as a pointer to a null-terminated string
+    ; OUTPUT: RAX as the length of the string
+    ;
     _string_len:
         ; rax = address of the string
         ; rsp[0] = counter
@@ -25,13 +29,20 @@ section .text
         pop rax
 
         ret
+    ;
+    ; =====================================================================
 
-    ; Registers used: RAX, RCX, RDX, R8, R9, R10
-    ; Dependencies: '_module' from 'mathlib', number_to_string_buffer (1024, bss)
-    ; input: RAX as the number to be converted
-    ; output: 
+
+    ; ===========================================================================
+    ; Converts a number into a null-terminated string
+    ; 
+    ; TODO: Allocate memory on the heap to replace the use of a BSS buffer
+    ; DEPENDENCIES: 'module' from 'mathlib', number_to_string_buffer (1024, bss)
+    ; INPUT: RAX as the number to be converted
+    ; OUTPUT: 
     ; - RAX as a pointer to the generated string
     ; - RCX as the size of the string
+    ;
     _number_to_string:
         ; Initial values
         mov rcx, 10   ; Divisor
@@ -68,7 +79,7 @@ section .text
         .not_zero:
         ; Looping to add each digit of the RAX to the stack
         .add_digit_to_stack:         ; DO WHILE the value of RAX is greater than 0
-        call _module                 ; RDX = RAX % RCX (10) and RAX /= RCX (10)
+        module                       ; RDX = RAX % RCX (10) and RAX /= RCX (10)
         push rdx                     ; Pushing the remainder (digit) to the stack
         inc r8                       ; Incrementing the counter
         cmp rax, 0
@@ -94,5 +105,7 @@ section .text
         mov rcx, r10
 
         ret
+    ;
+    ; ===========================================================================
 
 %endif
