@@ -1,7 +1,12 @@
+# Ignore everything
 *
 
-!include/
-!*.asm
-!*.inc
-!README.md
-!.gitignore
+# Except the folders and the files that have dot (the ones that aren't executables, you know)
+!*.*
+!*/
+
+# BUT, between the files that have dot, ignore the ones that end with
+*.exe
+*.elf
+*.o
+*.txt

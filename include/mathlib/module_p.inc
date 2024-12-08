@@ -1,21 +1,5 @@
-%ifndef MATHLIB
-%define MATHLIB
-
-
-; ================================================================
-; Performs the MOD(ule) operation
-;
-; NOTE: The values of RAX and RCX needs to be pre-defined
-; OUTPUT:
-; - RAX as the quotient
-; - RDX as the remainder
-;
-%macro module 0
-    mov rdx, 0
-    div rcx
-%endmacro
-;
-; ================================================================
+%ifndef MATHLIB_MODULE_P
+%define MATHLIB_MODULE_P
 
 
 ; ================================================================

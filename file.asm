@@ -1,7 +1,6 @@
 %include "include/essential.inc"
-%include "include/mathlib.inc"
-%include "include/stringlib.inc"
-%include "include/iolib.inc"
+%include "include/iolib/println.inc"
+
 
 section .data
     content db "Hello, world!"

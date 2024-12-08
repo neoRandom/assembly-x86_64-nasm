@@ -1,7 +1,9 @@
 %include "include/essential.inc"
-%include "include/mathlib.inc"
-%include "include/stringlib.inc"
-%include "include/iolib.inc"
+%include "include/mathlib/module.inc"
+%include "include/stringlib/string_len.inc"
+%include "include/stringlib/number_to_string.inc"
+%include "include/iolib/print.inc"
+%include "include/iolib/println.inc"
 
 section .data
     argc_label db "Argument(s): ", 0

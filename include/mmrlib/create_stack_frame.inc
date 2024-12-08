@@ -1,0 +1,20 @@
+%ifndef MMRLIB_CREATE_STACK_FRAME
+%define MMRLIB_CREATE_STACK_FRAME
+
+
+; ================================================================
+; Creates a Stack Frame
+;
+; PARAMETERS:
+; 1 - Bytes to allocate to the stack
+;
+%macro create_stack_frame 1
+    push rbp
+    mov rbp, rsp
+    sub rsp, %1
+%endmacro
+;
+; ================================================================
+
+
+%endif
