@@ -23,16 +23,17 @@ _start:
     println title_label, 86
 
     .main_loop:
-        print input_label, 2   ; Printing the initial label
-        input code, max_block_size  ; Receiving the code as input
-
-        ; Exit conditional
-        cmp byte [code], '0'
-        jz .exit
-        cmp byte [code], 'e'
-        jz .exit
-
         ; Zeroing the instructions array
+        mov rax, max_block_size
+        mov rcx, 8
+        mov rdx, 0
+        div rcx
+        mov rcx, rax        ; Number of qwords to write (32768 bytes / 8 bytes per qword)
+        mov rdi, code       ; Destination address (start of the array)
+        xor rax, rax        ; Value to fill (0 in this case)
+        rep stosq           ; Fill the memory with zero
+
+        ; Zeroing the data array
         mov rax, max_block_size
         mov rcx, 8
         mov rdx, 0
@@ -51,6 +52,15 @@ _start:
         mov rdi, user       ; Destination address (start of the array)
         xor rax, rax        ; Value to fill (0 in this case)
         rep stosq           ; Fill the memory with zero
+
+        print input_label, 2   ; Printing the initial label
+        input code, max_block_size  ; Receiving the code as input
+
+        ; Exit conditional
+        cmp byte [code], '0'
+        jz .exit
+        cmp byte [code], 'e'
+        jz .exit
 
         ; 'Variables'
         mov r15, 0  ; Instruction pointer (index)
@@ -225,60 +235,130 @@ _operator:
         ret
 
 
+; ============================================================================
 ; ================================ UNIT TESTS ================================
+; ============================================================================
+
 ; There isn't some sort of automated unit test, because it's already hard in
 ; high-level languages, in assembly it's a shit. Also, it needs modularization,
 ; something that i didn't implement yet.
 ; So here is some manual tests
 
-; Title: Model
-; Code: 
-; ...
-; Expected output: 
-; ...
 
-; Title: Initial Test
+; ======= Initial Test ===========================================
+;
 ; Code: 
-; ++++++++++++++++++++++++++++++++++++++++++++++++.
+;     ++++++++++++++++++++++++++++++++++++++++++++++++.
 ; Expected output: 
-; 0
+;     0
+;
 
-; Title: Ignore characters other than operators
-; Code: 
-; ++++++++++++++++++++++++ this should not modify the output ++++++++++++++++++++++++ or should it? .
-; Expected output: 
-; 0
 
-; Title: Cell Overflow (upwards)
+; ======= Ignore characters other than operators =================
+;
 ; Code: 
-; ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-; ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-; ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-; ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-; ++++++++++++++++++++++++++++++++++++++++++++++++.
+;     ++++++++++++++++++++++++ this should not modify the output 
+;     ++++++++++++++++++++++++ or should it? .
 ; Expected output: 
-; 0
+;     0
+;
 
-; Title: Cell Overflow (downwards)
-; Code: 
-; --------------------------------------------------------------------------------------------------------------------------------------.
-; Expected output: 
-; z
 
-; Title: Move data pointer
+; ======= Cell Overflow (upwards) ================================
+;
 ; Code: 
-; ++++++++++++++++++++++++++++++++++++++++++++++++ > +++++++++++++++++++++++++++++++++++++++++++++++++ . < .
+;     +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;     +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;     +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;     +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;     +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+;     +++++++++.
 ; Expected output: 
-; 10
+;     0
+;
 
-; Title: Data pointer overflow
-; Code: 
-; < ++++++++++++++++++++++++++++++++++++++++++++++++ . > +++++++++++++++++++++++++++++++++++++++++++++++++ .
-; Expected output: 
-; 01
 
-; Title: Input test
+; ======= Cell Overflow (downwards) ==============================
+;
 ; Code: 
-; ,.
+;     -----------------------------------------------------------
+;     -----------------------------------------------------------
+;     ----------------.
 ; Expected output: 
-; (whatever character you write first)
+;     z
+;
+
+
+; ======= Move data pointer ======================================
+;
+; Code: 
+;     ++++++++++++++++++++++++++++++++++++++++++++++++>++++++++++
+;     +++++++++++++++++++++++++++++++++++++++.<.
+; Expected output: 
+;     10
+;
+
+
+; ======= Data pointer overflow ==================================
+;
+; Code: 
+;     <++++++++++++++++++++++++++++++++++++++++++++++++.>++++++++
+;     +++++++++++++++++++++++++++++++++++++++++.
+; Expected output: 
+;     01
+;
+
+
+; ======= Input test =============================================
+;
+; Code: 
+;     ,.
+; Input:
+;     abc
+; Expected output: 
+;     a
+;
+
+
+; ======= Input value test =======================================
+;
+; Code: 
+;     ,#
+; Input:
+;     0
+; Expected output: 
+;     48
+;
+
+
+; ======= Complex input (normal) =================================
+;
+; Code: 
+;     ,,,.
+; Input:
+;     aaa
+; Expected output: 
+;     a
+;
+
+
+; ======= Complex input (including the null terminator) ==========
+;
+; Code: 
+;     ,,,,.
+; Input:
+;     aaa
+; Expected output: 
+;     (null value)
+;
+
+
+; ======= Input with multiple calls ==============================
+;
+; Code: 
+;     ,.,.,,.
+; Input:
+;     abcd
+; Expected output: 
+;     abd
+;
