@@ -26,12 +26,9 @@
 ; 
 __put:
     ; Printing the string
-    mov rax, SYS_WRITE
-    mov rdi, STDOUT
-    mov rsi, rsp
-    add rsi, 8
-    mov rdx, 1
-    syscall
+    mov r8, rsp
+    add r8, 8
+    sys_write STDOUT, r8, 1
 
     ret
 ;

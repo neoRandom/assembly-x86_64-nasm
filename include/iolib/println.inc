@@ -29,21 +29,14 @@ __println:
     ; Getting the size of the string
     mov rax, [rsp+8]
     call string_len
-    mov rdx, rax
+    mov r8, rax
 
     ; Printing the string
-    mov rax, SYS_WRITE
-    mov rdi, STDOUT
-    mov rsi, [rsp+8]
-    syscall
+    sys_write STDOUT, [rsp+8], r8
 
     ; Printing the new line
     push 10
-    mov rax, SYS_WRITE
-    mov rdi, STDOUT
-    mov rsi, rsp
-    mov rdx, 1
-    syscall
+    sys_write STDOUT, rsp, 1
     pop rax
 
     ret

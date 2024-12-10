@@ -47,4 +47,4 @@ _start:
         cmp r14, r15
         jne .print_arg
 
-    exit 0
+    sys_exit 0

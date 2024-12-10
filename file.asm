@@ -26,7 +26,7 @@ _start:
     mov r8, r13
     call _read_file
 
-    exit 0
+    sys_exit 0
 
 ; input: R8 as the pointer to the path to file
 ; output: print the content on the default ouput

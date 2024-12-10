@@ -376,14 +376,33 @@ PWRITEV2    equ 328
 
 
 ; ================================================================
+; Wrapper for the SYS_WRITE
+;
+; PARAMETERS:
+; 1 - File descriptor
+; 2 - Content/array pointer
+; 3 - Content/array size
+;
+%macro sys_write 3
+    mov rax, SYS_WRITE
+    mov rdi, %1  ; File descriptor
+    mov rsi, %2  ; Content pointer
+    mov rdx, %3  ; Content size
+    syscall
+%endmacro
+;
+; ================================================================
+
+
+; ================================================================
 ; Wrapper for the SYS_EXIT
 ;
 ; PARAMETERS:
 ; 1 - Exit code
 ;
-%macro exit 1
+%macro sys_exit 1
     mov rax, SYS_EXIT
-    mov rdi, %1
+    mov rdi, %1  ; Status code
     syscall
 %endmacro
 ;

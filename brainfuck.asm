@@ -73,7 +73,7 @@ _start:
         jmp .main_loop
     
     .exit:
-        exit 0
+        sys_exit 0
 
 ; PARAMETERS:
 ; +8 - Operator value
@@ -194,7 +194,7 @@ operator:
 
         .error_out_of_bounds:
             println out_of_bounds_error_label
-            exit 1
+            sys_exit 1
 
     .print_cell:
         mov rcx, data

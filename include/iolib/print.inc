@@ -29,13 +29,10 @@ __print:
     ; Getting the size of the string
     mov rax, [rsp+8]
     call string_len
-    mov rdx, rax
+    mov r8, rax
 
     ; Printing the string
-    mov rax, SYS_WRITE
-    mov rdi, STDOUT
-    mov rsi, [rsp+8]
-    syscall
+    sys_write STDOUT, [rsp+8], r8
 
     ret
 ;
