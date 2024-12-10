@@ -57,7 +57,7 @@ _start:
         .read_instruction:
             mov rax, [code + r15]  ; Operation value
             mov [rsp], rax
-            call _operator
+            call operator
 
             inc r15
             cmp byte [code + r15], NULL
@@ -77,7 +77,7 @@ _start:
 
 ; PARAMETERS:
 ; +8 - Operator value
-_operator:
+operator:
     ; Jump Table
     mov bl, byte [rsp + 8]
     cmp bl, '+'      ; Case: '+' (increase cell value)
@@ -208,7 +208,7 @@ _operator:
         add rcx, r14        ; Adding the offset
         xor rax, rax        ; Zeroing the RAX register
         mov al, byte [rcx]  ; Setting the least byte of the RAX (AL) as the cell value (8 bits)
-        call _number_to_string
+        call number_to_string
         mov r12, rax
         println r12, rcx
 

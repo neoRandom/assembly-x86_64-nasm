@@ -8,7 +8,7 @@ section .text
     global _start
 
 _start:
-    call _test_number_to_string
+    call _testnumber_to_string
 
     mov rax, 60
     mov rdi, 0
@@ -22,7 +22,7 @@ _start:
 ; Registers used: RAX
 ; input: RAX as a pointer to a null-terminated string
 ; output: RAX as the length of the string
-_string_len:
+string_len:
     ; rax = address of the string
     ; rsp[0] = counter
     push 0
@@ -42,7 +42,7 @@ _string_len:
 ; output: 
 ; - RAX as a pointer to the generated string
 ; - RCX as the size of the string
-_number_to_string:
+number_to_string:
     ; Initial values
     mov rcx, 10   ; Divisor
     mov r8, 0     ; Digit counter
@@ -149,10 +149,10 @@ _test_module:
     ret
 
 ; Expected output: 10
-_test_number_to_string:
+_testnumber_to_string:
     ; Normal test
     mov rax, 10
-    call _number_to_string
+    call number_to_string
     push rax
 
     mov rax, 1
@@ -176,7 +176,7 @@ _test_number_to_string:
 
     ; Negative number
     mov rax, -1
-    call _number_to_string
+    call number_to_string
     push rax
 
     mov rax, 1
@@ -200,7 +200,7 @@ _test_number_to_string:
 
     ; Zero
     mov rax, 0
-    call _number_to_string
+    call number_to_string
     push rax
 
     mov rax, 1

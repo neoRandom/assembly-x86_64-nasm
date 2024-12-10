@@ -16,7 +16,7 @@ section .text
 _start:
     ; Printing the argc
     mov rax, [rsp]
-    call _number_to_string
+    call number_to_string
     mov r15, rax
     print argc_label, 14
     println r15, 1
@@ -31,7 +31,7 @@ _start:
         ; Printing the number
         mov rax, r14            ; Setting RAX (number to be converted) as r14 (counter)
         inc rax                 ; Incrementing by one, so the count starts in 1
-        call _number_to_string  ; Converting the number to string
+        call number_to_string  ; Converting the number to string
         mov r13, rax            ; Saving the pointer
         mov r12, rcx            ; Saving the length
         print r13, r12
@@ -42,7 +42,7 @@ _start:
         ; Printing the arg value
         pop rax           ; Getting the pointer to the string
         mov r13, rax      ; Saving the pointer
-        call _string_len  ; Getting the length of the string (RAX)
+        call string_len  ; Getting the length of the string (RAX)
         mov r12, rax      ; Saving the length
         println r13, r12
 

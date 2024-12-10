@@ -15,7 +15,7 @@
 %macro module_p 2
     mov rax, %1
     mov rcx, %2
-    mov rdx, 0
+    xor rdx, rdx
     div rcx
 %endmacro
 ;
