@@ -18,33 +18,29 @@ _start:
     mov rax, [rsp]
     call number_to_string
     mov r15, rax
-    print argc_label, 14
-    println r15, 1
+    print argc_label
+    println r15
 
     ; Printing each argv
     pop r15     ; Number of args
     mov r14, 0  ; Counter
     .print_arg:
         ; Printing the label
-        print argv_label, 11
+        print argv_label
         
         ; Printing the number
         mov rax, r14            ; Setting RAX (number to be converted) as r14 (counter)
         inc rax                 ; Incrementing by one, so the count starts in 1
         call number_to_string  ; Converting the number to string
         mov r13, rax            ; Saving the pointer
-        mov r12, rcx            ; Saving the length
-        print r13, r12
+        print r13
 
         ; Printing the splitter
-        print splitter, 3
+        print splitter
 
         ; Printing the arg value
-        pop rax           ; Getting the pointer to the string
-        mov r13, rax      ; Saving the pointer
-        call string_len  ; Getting the length of the string (RAX)
-        mov r12, rax      ; Saving the length
-        println r13, r12
+        pop r13
+        println r13
 
         ; End of repetition
         inc r14
