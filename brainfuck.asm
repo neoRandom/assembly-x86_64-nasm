@@ -1,15 +1,17 @@
 %include "include/essential.inc"
 %include "include/mathlib/module.inc"
 %include "include/stringlib/number_to_string.inc"
+%include "include/stringlib/string_len.inc"
 %include "include/iolib/println.inc"
 %include "include/iolib/print.inc"
 %include "include/iolib/input.inc"
+%include "include/iolib/put.inc"
 %include "include/mmrlib/memset.inc"
 
 
 section .data
-    title_label db "Brainfuck Interpreter Shell (Assembly x86_64 Linux/Unix Version) | 'e' or '0' to exit", 10
-    out_of_bounds_error_label db "Error: Out of bounds input", 10
+    title_label db "Brainfuck Interpreter Shell (Assembly x86_64 Linux/Unix Version) | 'e' or '0' to exit", 0
+    out_of_bounds_error_label db "Error: Out of bounds input", 0
     input_label db "> ", 0
     max_block_size equ 32768
 
@@ -22,7 +24,7 @@ section .text
     global _start
 
 _start:
-    println title_label, 86
+    println title_label
 
     .main_loop:
         ; Zeroing the arrays
@@ -36,7 +38,7 @@ _start:
         memset 0, user, [rsp]
         pop rax
 
-        print input_label, 2   ; Printing the initial label
+        print input_label           ; Printing the initial label
         input code, max_block_size  ; Receiving the code as input
 
         ; Exit conditional
@@ -66,9 +68,7 @@ _start:
         add rsp, 8  ; Shrinking the stack
 
         ; Printing a new line
-        push 10
-        print rsp, 1
-        pop rax
+        put byte 10
 
         jmp .main_loop
     
@@ -193,13 +193,13 @@ operator:
         jmp .exit
 
         .error_out_of_bounds:
-            print out_of_bounds_error_label, 27
+            println out_of_bounds_error_label
             exit 1
 
     .print_cell:
         mov rcx, data
         add rcx, r14
-        print rcx, 1
+        put qword [rcx]
 
         jmp .exit
     
@@ -210,7 +210,7 @@ operator:
         mov al, byte [rcx]  ; Setting the least byte of the RAX (AL) as the cell value (8 bits)
         call number_to_string
         mov r12, rax
-        println r12, rcx
+        println r12
 
         jmp .exit
     

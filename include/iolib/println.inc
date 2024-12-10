@@ -19,7 +19,7 @@
 
 
 ; ================================================================
-; Wrapper of the SYS_WRITE, is like __print, but also prints a LF (20) at the end
+; Is like __print, but also prints a LF (20) at the end
 ;
 ; DEPENDENCIES: 'string_len' from 'stringlib'
 ; PARAMETERS:

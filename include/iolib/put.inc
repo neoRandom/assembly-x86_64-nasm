@@ -1,17 +1,17 @@
-%ifndef IOLIB_PRINT
-%define IOLIB_PRINT
+%ifndef IOLIB_PUT
+%define IOLIB_PUT
 
 
 ; ================================================================
-; Wrapper of the (private) function __print
+; Wrapper of the (private) function __put
 ;
 ; PARAMETERS:
-; 1 - Pointer of the content to write
+; 1 - Value of the character (ASCII) to display
 ; 
-%macro print 1
+%macro put 1
     ; Setting the parameters
     push %1
-    call __print
+    call __put
     pop rax
 %endmacro
 ;
@@ -19,22 +19,18 @@
 
 
 ; ================================================================
-; Prints a null-terminated string
+; Prints single character based on its value
 ;
-; DEPENDENCIES: 'string_len' from 'stringlib'
 ; PARAMETERS:
-; 1 - Pointer of the content to write
+; 1 - Value of the character (ASCII) to display
 ; 
-__print:
-    ; Getting the size of the string
-    mov rax, [rsp+8]
-    call string_len
-    mov rdx, rax
-
+__put:
     ; Printing the string
     mov rax, SYS_WRITE
     mov rdi, STDOUT
-    mov rsi, [rsp+8]
+    mov rsi, rsp
+    add rsi, 8
+    mov rdx, 1
     syscall
 
     ret
