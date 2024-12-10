@@ -7,6 +7,7 @@
 
 # BUT, between the files that have dot, ignore the ones that end with
 *.exe
+*.out
 *.elf
 *.o
 *.txt

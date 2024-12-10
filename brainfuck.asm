@@ -5,6 +5,21 @@
 %include "include/iolib/print.inc"
 %include "include/iolib/input.inc"
 
+; ==================================================
+; Sets a whole block of memory with a certain value
+;
+; PARAMETERS:
+; 1 - Value to fill
+; 2 - Pointer of the array
+; 3 - Size in qwords
+%macro memset 3
+    mov rax, %1
+    mov rdi, %2
+    mov rcx, %3
+    rep stosq
+%endmacro
+;
+
 section .data
     title_label db "Brainfuck Interpreter Shell (Assembly x86_64 Linux/Unix Version) | 'e' or '0' to exit", 10
     out_of_bounds_error_label db "Error: Out of bounds input", 10
@@ -23,35 +38,16 @@ _start:
     println title_label, 86
 
     .main_loop:
-        ; Zeroing the instructions array
+        ; Zeroing the arrays
         mov rax, max_block_size
         mov rcx, 8
         mov rdx, 0
         div rcx
-        mov rcx, rax        ; Number of qwords to write (32768 bytes / 8 bytes per qword)
-        mov rdi, code       ; Destination address (start of the array)
-        xor rax, rax        ; Value to fill (0 in this case)
-        rep stosq           ; Fill the memory with zero
-
-        ; Zeroing the data array
-        mov rax, max_block_size
-        mov rcx, 8
-        mov rdx, 0
-        div rcx
-        mov rcx, rax        ; Number of qwords to write (32768 bytes / 8 bytes per qword)
-        mov rdi, data       ; Destination address (start of the array)
-        xor rax, rax        ; Value to fill (0 in this case)
-        rep stosq           ; Fill the memory with zero
-
-        ; Zeroing the user input buffer
-        mov rax, max_block_size
-        mov rcx, 8
-        mov rdx, 0
-        div rcx
-        mov rcx, rax        ; Number of qwords to write (32768 bytes / 8 bytes per qword)
-        mov rdi, user       ; Destination address (start of the array)
-        xor rax, rax        ; Value to fill (0 in this case)
-        rep stosq           ; Fill the memory with zero
+        push rax
+        memset 0, code, [rsp]
+        memset 0, data, [rsp]
+        memset 0, user, [rsp]
+        pop rax
 
         print input_label, 2   ; Printing the initial label
         input code, max_block_size  ; Receiving the code as input
@@ -69,7 +65,7 @@ _start:
 
         sub rsp, 8  ; Growing the stack
 
-        mov qword r15, 0  
+        mov r15, 0  
 
         .read_instruction:
             mov rax, [code + r15]  ; Operation value
