@@ -4,21 +4,8 @@
 %include "include/iolib/println.inc"
 %include "include/iolib/print.inc"
 %include "include/iolib/input.inc"
+%include "include/mmrlib/memset.inc"
 
-; ==================================================
-; Sets a whole block of memory with a certain value
-;
-; PARAMETERS:
-; 1 - Value to fill
-; 2 - Pointer of the array
-; 3 - Size in qwords
-%macro memset 3
-    mov rax, %1
-    mov rdi, %2
-    mov rcx, %3
-    rep stosq
-%endmacro
-;
 
 section .data
     title_label db "Brainfuck Interpreter Shell (Assembly x86_64 Linux/Unix Version) | 'e' or '0' to exit", 10
