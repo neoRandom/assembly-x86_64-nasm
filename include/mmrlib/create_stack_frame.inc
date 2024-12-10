@@ -5,6 +5,8 @@
 ; ================================================================
 ; Creates a Stack Frame
 ;
+; NOTE: The size in bytes allocated are stored at the top of the stack
+; Return Address (if any) -> RBP last value -> Empty space -> Size allocated
 ; PARAMETERS:
 ; 1 - Bytes to allocate to the stack
 ;
@@ -12,6 +14,7 @@
     push rbp
     mov rbp, rsp
     sub rsp, %1
+    push %1
 %endmacro
 ;
 ; ================================================================

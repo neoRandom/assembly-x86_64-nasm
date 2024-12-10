@@ -5,11 +5,11 @@
 ; ================================================================
 ; Removes the Stack Frame
 ;
-; PARAMETERS:
-; 1 - Bytes allocated to the stack
+; Note: Gets the size allocated with POP
 ;
 %macro remove_stack_frame 1
-    add rsp, %1
+    pop rbp
+    add rsp, rbp
     pop rbp
 %endmacro
 ;
