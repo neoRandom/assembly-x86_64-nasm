@@ -9,28 +9,50 @@
 %include "library/memory/memset.inc"
 
 
-max_block_size equ 32768
-max_nested_loop equ 64
+max_block_size  equ 32768
+max_nested_loop equ 128
+
 
 section .data
-    title_label db "Brainfuck Interpreter Shell (Assembly x86_64 Linux/Unix Version) | 'e' or '0' to exit", 0
-    out_of_bounds_error_label db "Error: Out of bounds operation", 0
+    title_label                 db "Brainfuck Interpreter Shell (Assembly x86_64 Linux/Unix Version) | 'e' or '0' to exit", 0
+    out_of_bounds_error_label   db "Error: Out of bounds operation", 0
     max_nested_loop_error_label db "Error: Max nested loop reached", 0
-    input_label db "> ", 0
+    failed_to_open_error_label  db "Error: failed to open the file", 0
+    input_label                 db "> ", 0
+
 
 section .bss
-    code resb max_block_size  ; Instructions array block
-    data resb max_block_size  ; Data array block
-    user resb max_block_size  ; Buffer for user input
+    code       resb max_block_size   ; Instructions array block
+    data       resb max_block_size   ; Data array block
+    user       resb max_block_size   ; Buffer for user input
     loop_stack resq max_nested_loop  ; Stack for nested loops
+
 
 section .text
     global _start
 
-_start:
-    call shell_mode
 
-    sys_exit 0
+_start:
+    pop rax  ; Argument count
+
+    ; If the program have 1 argument, run in shell mode
+    cmp rax, 1
+    je .run_shell
+
+    ; If the program have 2 or more arguments, then run in file mode
+    cmp rax, 2
+    jge .run_file
+    
+    ; Else, it somehow broke the system by having less than 1 argument
+    sys_exit 1
+
+    .run_shell:
+        call shell_mode
+        sys_exit 0
+
+    .run_file:
+        call file_mode
+        sys_exit 0
 
 
 shell_mode:
@@ -50,7 +72,7 @@ shell_mode:
 
         call interpreter
 
-        ; Printing a new line
+        ; Print a new line
         put 10
 
         jmp .main_loop
@@ -58,6 +80,33 @@ shell_mode:
     .exit:
         ret
 
+
+file_mode:
+    mov r8, [rsp+16]   ; Saving the file path
+
+    call clear_memory  ; Zeroing all the arrays to prevent runtime errors
+
+    ; Open the file
+    sys_open r8, O_RDONLY, 0644o
+
+    ; Test for error (error codes are negative)
+    cmp rax, 0
+    jl .failed_to_open
+
+    ; Read the file
+    mov r8, rax
+    sys_read r8, code, max_block_size
+
+    ; Call the interpreter
+    call interpreter
+
+    ret
+
+    .failed_to_open:
+        println failed_to_open_error_label
+        mov r8, rax
+        sys_exit r8
+    
 
 clear_memory:
     ; Zeroing the arrays
@@ -101,38 +150,58 @@ interpreter:
     ret
 
 
+; IMPORTANT: This function is a part of the `interpreter` function
 operator:
-    ; Jump Table
+    ; Saving the registers
+    push rbx
+
+
+    ; ===== Jump Table =====
+
     mov bl, byte [code + r15]
+
     cmp bl, '+'      ; Case: '+' (increase cell value)
     je .inc_cell
+
     cmp bl, '-'      ; Case: '-' (decrease cell value)
     je .dec_cell
+
     cmp bl, '>'      ; Case: '>' (move pointer to right)
     je .inc_ptr
+
     cmp bl, '<'      ; Case: '<' (move pointer to left)
     je .dec_ptr
+
     cmp bl, '['      ; Case: '[' (start loop)
     je .start_loop
+
     cmp bl, ']'      ; Case: ']' (end loop)
     je .end_loop
+
     cmp bl, ','      ; Case: ',' (get input)
     je .input_cell
+
     cmp bl, '.'      ; Case: '.' (print cell value as ASCII)
     je .print_cell
+
     cmp bl, '#'      ; Case: '#' (print cell value as number)
     je .print_debug
 
     jmp .exit        ; Default
 
+
+    ; ===== Operations =====
+
     .inc_cell:
         inc byte [data + r14]
         jmp .exit
+
 
     .dec_cell:
         dec byte [data + r14]
         jmp .exit
     
+
     .inc_ptr:
         ; If the instruction pointer is MAX or greater, the increment should set it to 0
         cmp r14, max_block_size
@@ -146,6 +215,7 @@ operator:
         mov r14, 0
         jmp .exit
     
+
     .dec_ptr:
         ; If the instruction pointer is 0 or lesser, the decrement should MAX it
         cmp r14, 0
@@ -159,6 +229,7 @@ operator:
         mov r14, max_block_size
         jmp .exit
     
+
     .start_loop:
         ; If the loop stack is full, throw an error
         cmp r12, max_nested_loop
@@ -217,6 +288,7 @@ operator:
         
         jmp .exit
     
+
     .end_loop:
         cmp r12, 0
         jle .exit  ; If the loop stack is empty, just ignore
@@ -233,6 +305,7 @@ operator:
             mov r15, qword [r12 * 8 + loop_stack]
             jmp .exit
     
+
     .input_cell:
         ; If the user buffer is empty, ask for input
         cmp r13, 0
@@ -282,6 +355,7 @@ operator:
         
         jmp .exit
 
+
     .print_cell:
         mov rcx, data
         add rcx, r14
@@ -289,6 +363,7 @@ operator:
 
         jmp .exit
     
+
     .print_debug:
         mov rcx, data       ; Getting the cell address
         add rcx, r14        ; Adding the offset
@@ -300,6 +375,9 @@ operator:
 
         jmp .exit
 
+
+    ; ===== Error handling =====
+
     .error_out_of_bounds:
         println out_of_bounds_error_label
         sys_exit 1
@@ -307,8 +385,14 @@ operator:
     .error_max_nested_loop:
         println max_nested_loop_error_label
         sys_exit 2
-    
+
+
+    ; ===== Exit =====
+
     .exit:
+        ; Returning the original value to the registers
+        pop rbx
+
         ret
 
 
