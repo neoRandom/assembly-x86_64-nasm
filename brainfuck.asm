@@ -28,19 +28,16 @@ section .text
     global _start
 
 _start:
+    call shell_mode
+    
+    sys_exit 0
+
+
+shell_mode:
     println title_label
 
     .main_loop:
-        ; Zeroing the arrays
-        mov rax, max_block_size
-        mov rcx, 8
-        mov rdx, 0
-        div rcx
-        push rax
-        memset 0, code, [rsp]
-        memset 0, data, [rsp]
-        memset 0, user, [rsp]
-        pop rax
+        call clear_memory
 
         print input_label           ; Printing the initial label
         input code, max_block_size  ; Receiving the code as input
@@ -51,18 +48,7 @@ _start:
         cmp byte [code], 'e'
         je .exit
 
-        ; 'Variables'
-        mov r15, 0  ; Instruction pointer
-        mov r14, 0  ; Data pointer
-        mov r13, 0  ; User input buffer pointer 
-        mov r12, 0  ; Loop stack pointer
-
-        .read_instruction:
-            call operator
-
-            inc r15
-            cmp byte [code + r15], NULL
-            jnz .read_instruction
+        call interpreter
 
         ; Printing a new line
         put 10
@@ -70,10 +56,51 @@ _start:
         jmp .main_loop
     
     .exit:
-        sys_exit 0
+        ret
 
-; PARAMETERS:
-; +8 - Operator value
+
+clear_memory:
+    ; Zeroing the arrays
+    mov rax, max_block_size
+    mov rcx, 8
+    mov rdx, 0
+    div rcx
+    push rax
+    memset 0, code, [rsp]
+    memset 0, data, [rsp]
+    memset 0, user, [rsp]
+    pop rax
+
+
+interpreter:
+    ; Setting the 'Variables'
+    push r15
+    push r14
+    push r13
+    push r12
+
+    mov r15, 0  ; Instruction pointer
+    mov r14, 0  ; Data pointer
+    mov r13, 0  ; User input buffer pointer 
+    mov r12, 0  ; Loop stack pointer
+
+    ; Reading the instructions
+    .read_instruction:
+        call operator
+
+        inc r15
+        cmp byte [code + r15], NULL
+        jnz .read_instruction
+    
+    ; Returning the original values of the registers
+    pop r12
+    pop r13
+    pop r14
+    pop r15
+    
+    ret
+
+
 operator:
     ; Jump Table
     mov bl, byte [code + r15]
