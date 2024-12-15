@@ -1,5 +1,5 @@
-%include "include/essential.inc"
-%include "include/iolib/println.inc"
+%include "library/essential.inc"
+%include "library/io/println.inc"
 
 
 section .data
