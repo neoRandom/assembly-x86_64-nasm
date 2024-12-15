@@ -29,7 +29,7 @@ section .text
 
 _start:
     call shell_mode
-    
+
     sys_exit 0
 
 
@@ -441,7 +441,7 @@ operator:
 ;
 
 
-; ======= Basic loop ==============
+; ======= Basic loop =============================================
 ;
 ; Code:
 ;     +[#+]
@@ -450,7 +450,7 @@ operator:
 ;
 
 
-; ======= Basic math ==============
+; ======= Basic math =============================================
 ;
 ; Code:
 ;     +++[>++<-]>#
@@ -459,10 +459,21 @@ operator:
 ;
 
 
-; ======= Advanced math (nested loop) ==============
+; ======= Advanced math (nested loop) ============================
 ;
 ; Code:
 ;     ++++[>+++[>++<-]<-]>>#
 ; Expected output:
 ;     24
+;
+
+
+; ======= Loop + Input ===========================================
+;
+; Code:
+;     ,[.,]
+; Input:
+;     Some text, doesn't metter much
+; Expected output:
+;     Some text, doesn't metter much
 ;
