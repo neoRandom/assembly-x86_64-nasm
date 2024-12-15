@@ -376,6 +376,25 @@ PWRITEV2    equ 328
 
 
 ; ================================================================
+; Wrapper for the SYS_READ
+;
+; PARAMETERS:
+; 1 - File descriptor
+; 2 - Container/array pointer
+; 3 - Container/array size
+;
+%macro sys_read 3
+    mov rax, SYS_READ
+    mov rdi, %1  ; File descriptor
+    mov rsi, %2  ; Container pointer
+    mov rdx, %3  ; Container size
+    syscall
+%endmacro
+;
+; ================================================================
+
+
+; ================================================================
 ; Wrapper for the SYS_WRITE
 ;
 ; PARAMETERS:
@@ -388,6 +407,41 @@ PWRITEV2    equ 328
     mov rdi, %1  ; File descriptor
     mov rsi, %2  ; Content pointer
     mov rdx, %3  ; Content size
+    syscall
+%endmacro
+;
+; ================================================================
+
+
+; ================================================================
+; Wrapper for the SYS_OPEN
+;
+; OUTPUT: RAX as the File Descriptor
+; PARAMETERS:
+; 1 - Pointer to path
+; 2 - Flag
+; 3 - Mode
+;
+%macro sys_open 3
+    mov rax, SYS_OPEN
+    mov rdi, %1  ; Pointer to string that cointains the path
+    mov rsi, %2  ; Flag (e.g.: O_RDONLY)
+    mov rdx, %3  ; Mode (Permissions in XXXXo format)
+    syscall
+%endmacro
+;
+; ================================================================
+
+
+; ================================================================
+; Wrapper for the SYS_CLOSE
+;
+; PARAMETERS:
+; 1 - File Descriptor
+;
+%macro sys_close 1
+    mov rax, SYS_CLOSE
+    mov rdi, %1  ; File Descriptor
     syscall
 %endmacro
 ;

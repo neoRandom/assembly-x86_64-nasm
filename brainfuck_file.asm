@@ -10,9 +10,9 @@
 
 
 section .data
-    title_label db "Brainfuck Interpreter Shell (Assembly x86_64 Linux/Unix Version) | 'e' or '0' to exit", 0
+    no_file_error_label db "Error: Not enough parameters (file path, e.g.: './main code.bf')", 0
+    failed_to_open_error_label db "Error: failed to open the file", 0
     out_of_bounds_error_label db "Error: Out of bounds input", 0
-    input_label db "> ", 0
     max_block_size equ 32768
 
 section .bss
@@ -24,56 +24,63 @@ section .text
     global _start
 
 _start:
-    println title_label
+    ; Zeroing the arrays
+    mov rax, max_block_size
+    mov rcx, 8
+    mov rdx, 0
+    div rcx
+    push rax
+    memset 0, code, [rsp]
+    memset 0, data, [rsp]
+    memset 0, user, [rsp]
+    pop rax
 
-    .main_loop:
-        ; Zeroing the arrays
-        mov rax, max_block_size
-        mov rcx, 8
-        mov rdx, 0
-        div rcx
-        push rax
-        memset 0, code, [rsp]
-        memset 0, data, [rsp]
-        memset 0, user, [rsp]
-        pop rax
+    pop rax      ; Arg count
+    cmp rax, 2
+    jne .no_file_error_label
 
-        print input_label           ; Printing the initial label
-        input code, max_block_size  ; Receiving the code as input
+    pop rax      ; Exec path (Just ignore)
+    pop r8       ; File path (that's what we want, baby)
 
-        ; Exit conditional
-        cmp byte [code], '0'
-        jz .exit
-        cmp byte [code], 'e'
-        je .exit
+    ; Opening the file
+    sys_open r8, O_RDONLY, 0644o
+    cmp rax, 0  ; Test for error
+    jl .failed_to_open
 
-        ; 'Variables'
-        mov r15, 0  ; Instruction pointer (index)
-        mov r14, 0  ; Data pointer (index)
-        mov r13, 0  ; User input buffer pointer (index)
+    ; Reading the file
+    mov r8, rax
+    sys_read r8, code, max_block_size
 
-        sub rsp, 8  ; Growing the stack
+    ; 'Variables'
+    mov r15, 0  ; Instruction pointer (index)
+    mov r14, 0  ; Data pointer (index)
+    mov r13, 0  ; User input buffer pointer (index)
 
-        mov r15, 0  
+    sub rsp, 8  ; Growing the stack
 
-        .read_instruction:
-            mov rax, [code + r15]  ; Operation value
-            mov [rsp], rax
-            call operator
+    mov r15, 0  
 
-            inc r15
-            cmp byte [code + r15], NULL
-            jnz .read_instruction
-        
-        add rsp, 8  ; Shrinking the stack
+    .read_instruction:
+        mov rax, [code + r15]  ; Operation value
+        mov [rsp], rax
+        call operator
 
-        ; Printing a new line
-        put byte 10
-
-        jmp .main_loop
+        inc r15
+        cmp byte [code + r15], NULL
+        jnz .read_instruction
     
-    .exit:
-        sys_exit 0
+    add rsp, 8  ; Shrinking the stack
+    
+    sys_exit 0
+
+    .no_file_error_label:
+        println no_file_error_label
+        sys_exit 1
+    
+    .failed_to_open:
+        println failed_to_open_error_label
+        mov r8, rax
+        sys_exit r8
 
 ; PARAMETERS:
 ; +8 - Operator value
@@ -194,7 +201,7 @@ operator:
 
         .error_out_of_bounds:
             println out_of_bounds_error_label
-            sys_exit 1
+            sys_exit 3
 
     .print_cell:
         mov rcx, data
@@ -217,131 +224,3 @@ operator:
     .exit:
         ret
 
-
-; ============================================================================
-; ================================ UNIT TESTS ================================
-; ============================================================================
-
-; There isn't some sort of automated unit test, because it's already hard in
-; high-level languages, in assembly it's a shit. Also, it needs modularization,
-; something that i didn't implement yet.
-; So here is some manual tests
-
-
-; ======= Initial Test ===========================================
-;
-; Code: 
-;     ++++++++++++++++++++++++++++++++++++++++++++++++.
-; Expected output: 
-;     0
-;
-
-
-; ======= Ignore characters other than operators =================
-;
-; Code: 
-;     ++++++++++++++++++++++++ this should not modify the output 
-;     ++++++++++++++++++++++++ or should it? .
-; Expected output: 
-;     0
-;
-
-
-; ======= Cell Overflow (upwards) ================================
-;
-; Code: 
-;     +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-;     +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-;     +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-;     +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-;     +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-;     +++++++++.
-; Expected output: 
-;     0
-;
-
-
-; ======= Cell Overflow (downwards) ==============================
-;
-; Code: 
-;     -----------------------------------------------------------
-;     -----------------------------------------------------------
-;     ----------------.
-; Expected output: 
-;     z
-;
-
-
-; ======= Move data pointer ======================================
-;
-; Code: 
-;     ++++++++++++++++++++++++++++++++++++++++++++++++>++++++++++
-;     +++++++++++++++++++++++++++++++++++++++.<.
-; Expected output: 
-;     10
-;
-
-
-; ======= Data pointer overflow ==================================
-;
-; Code: 
-;     <++++++++++++++++++++++++++++++++++++++++++++++++.>++++++++
-;     +++++++++++++++++++++++++++++++++++++++++.
-; Expected output: 
-;     01
-;
-
-
-; ======= Input test =============================================
-;
-; Code: 
-;     ,.
-; Input:
-;     abc
-; Expected output: 
-;     a
-;
-
-
-; ======= Input value test =======================================
-;
-; Code: 
-;     ,#
-; Input:
-;     0
-; Expected output: 
-;     48
-;
-
-
-; ======= Complex input (normal) =================================
-;
-; Code: 
-;     ,,,.
-; Input:
-;     aaa
-; Expected output: 
-;     a
-;
-
-
-; ======= Complex input (including the null terminator) ==========
-;
-; Code: 
-;     ,,,,.
-; Input:
-;     aaa
-; Expected output: 
-;     (null value)
-;
-
-
-; ======= Input with multiple calls ==============================
-;
-; Code: 
-;     ,.,.,,.
-; Input:
-;     abcd
-; Expected output: 
-;     abd
-;
