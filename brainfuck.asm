@@ -9,16 +9,20 @@
 %include "library/memory/memset.inc"
 
 
+max_block_size equ 32768
+max_nested_loop equ 64
+
 section .data
     title_label db "Brainfuck Interpreter Shell (Assembly x86_64 Linux/Unix Version) | 'e' or '0' to exit", 0
-    out_of_bounds_error_label db "Error: Out of bounds input", 0
+    out_of_bounds_error_label db "Error: Out of bounds operation", 0
+    max_nested_loop_error_label db "Error: Max nested loop reached", 0
     input_label db "> ", 0
-    max_block_size equ 32768
 
 section .bss
     code resb max_block_size  ; Instructions array block
     data resb max_block_size  ; Data array block
     user resb max_block_size  ; Buffer for user input
+    loop_stack resq max_nested_loop  ; Stack for nested loops
 
 section .text
     global _start
@@ -48,27 +52,20 @@ _start:
         je .exit
 
         ; 'Variables'
-        mov r15, 0  ; Instruction pointer (index)
-        mov r14, 0  ; Data pointer (index)
-        mov r13, 0  ; User input buffer pointer (index)
-
-        sub rsp, 8  ; Growing the stack
-
-        mov r15, 0  
+        mov r15, 0  ; Instruction pointer
+        mov r14, 0  ; Data pointer
+        mov r13, 0  ; User input buffer pointer 
+        mov r12, 0  ; Loop stack pointer
 
         .read_instruction:
-            mov rax, [code + r15]  ; Operation value
-            mov [rsp], rax
             call operator
 
             inc r15
             cmp byte [code + r15], NULL
             jnz .read_instruction
-        
-        add rsp, 8  ; Shrinking the stack
 
         ; Printing a new line
-        put byte 10
+        put 10
 
         jmp .main_loop
     
@@ -79,7 +76,7 @@ _start:
 ; +8 - Operator value
 operator:
     ; Jump Table
-    mov bl, byte [rsp + 8]
+    mov bl, byte [code + r15]
     cmp bl, '+'      ; Case: '+' (increase cell value)
     je .inc_cell
     cmp bl, '-'      ; Case: '-' (decrease cell value)
@@ -89,9 +86,9 @@ operator:
     cmp bl, '<'      ; Case: '<' (move pointer to left)
     je .dec_ptr
     cmp bl, '['      ; Case: '[' (start loop)
-    je .start_rep
+    je .start_loop
     cmp bl, ']'      ; Case: ']' (end loop)
-    je .end_rep
+    je .end_loop
     cmp bl, ','      ; Case: ',' (get input)
     je .input_cell
     cmp bl, '.'      ; Case: '.' (print cell value as ASCII)
@@ -135,13 +132,79 @@ operator:
         mov r14, max_block_size
         jmp .exit
     
-    .start_rep:
-        ; TODO
+    .start_loop:
+        ; If the loop stack is full, throw an error
+        cmp r12, max_nested_loop
+        jge .error_max_nested_loop
+
+        ; If the current cell value is zero, jump to the next instruction and push the instruction pointer to the loop stack
+        cmp byte [data + r14], 0
+        jnz .enter_loop
+
+        ; If not, jump to the next instruction until it is the correspondent ']'
+        ; Skipping the loop
+        mov rax, 0  ; Depth of the search (increments by one with each '[' found)
+        mov rbx, 0  ; Counter
+
+        .loop_through_code:
+            inc rbx
+            ; Check for out of bounds
+            mov rcx, r15
+            add rcx, rbx
+            cmp rcx, max_block_size
+            jge .error_out_of_bounds
+
+            ; Search
+            mov cl, byte [code + r15 + rbx]
+            cmp cl, '['
+            je .increment_depth
+            cmp cl, ']'
+            je .decrement_depth
+
+            ; Check for NULL character
+            cmp cl, NULL
+            je .exit
+        
+        .increment_depth:
+            inc rax
+            jmp .loop_through_code
+        
+        .decrement_depth:
+            ; Check if the depth of search is 0
+            ; If it is, exit the loop
+            cmp rax, 0
+            jz .finish_loop_skip
+
+            ; Else, decrement and continue the search
+            dec rax
+            jmp .loop_through_code
+        
+        .finish_loop_skip:
+            add r15, rbx
+            jmp .exit
+
+        .enter_loop:
+            mov rax, r15
+            inc r12  ; Increasing the loop stack pointer
+            mov qword [r12 * 8 + loop_stack], rax  ; Pushing the instruction pointer to the loop stack
+        
         jmp .exit
     
-    .end_rep:
-        ; TODO
+    .end_loop:
+        cmp r12, 0
+        jle .exit  ; If the loop stack is empty, just ignore
+
+        ; If the current cell value is not zero, go back to the beginning of the looping
+        cmp byte [data + r14], 0
+        jnz .go_back
+
+        ; Else, remove the last element of the loop stack
+        dec r12
         jmp .exit
+
+        .go_back:
+            mov r15, qword [r12 * 8 + loop_stack]
+            jmp .exit
     
     .input_cell:
         ; If the user buffer is empty, ask for input
@@ -192,10 +255,6 @@ operator:
         
         jmp .exit
 
-        .error_out_of_bounds:
-            println out_of_bounds_error_label
-            sys_exit 1
-
     .print_cell:
         mov rcx, data
         add rcx, r14
@@ -209,10 +268,18 @@ operator:
         xor rax, rax        ; Zeroing the RAX register
         mov al, byte [rcx]  ; Setting the least byte of the RAX (AL) as the cell value (8 bits)
         call number_to_string
-        mov r12, rax
-        println r12
+        mov r11, rax
+        println r11
 
         jmp .exit
+
+    .error_out_of_bounds:
+        println out_of_bounds_error_label
+        sys_exit 1
+    
+    .error_max_nested_loop:
+        println max_nested_loop_error_label
+        sys_exit 2
     
     .exit:
         ret
@@ -344,4 +411,31 @@ operator:
 ;     abcd
 ; Expected output: 
 ;     abd
+;
+
+
+; ======= Basic loop ==============
+;
+; Code:
+;     +[#+]
+; Expected output:
+;     (all numbers from 1 to 255)
+;
+
+
+; ======= Basic math ==============
+;
+; Code:
+;     +++[>++<-]>#
+; Expected output:
+;     6
+;
+
+
+; ======= Advanced math (nested loop) ==============
+;
+; Code:
+;     ++++[>+++[>++<-]<-]>>#
+; Expected output:
+;     24
 ;
