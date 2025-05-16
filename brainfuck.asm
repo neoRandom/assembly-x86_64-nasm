@@ -314,7 +314,7 @@ operator:
 
         ; Getting the size of the input
         ; NOTE: The null terminator count to the size of the input,
-        ; beucause if the user haven't written anything, the cell
+        ; beucause if the user haven't written anything, the cell. <- Note from the future: wtf is that english
         ; value will be zero and the user buffer size should be
         ; decreased from 1 to 0
         xor r13, r13
